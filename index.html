@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title> MRP 例题</title>
+    <style>
+        /* 页面基础样式 */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; bg-color: #f8fafc; background-color: #f1f5f9; padding: 24px; margin: 0; color: #334155; }
+        .container { max-width: 1200px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        h1 { text-align: center; margin-top: 0; margin-bottom: 8px; color: #1e293b; font-size: 24px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 24px; }
+        
+        /* 已知条件看板样式 */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+        .card-title { font-weight: bold; font-size: 14px; color: #1e3a8a; margin-bottom: 10px; display: flex; align-items: center; }
+        
+        /* 基础表格样式 */
+        table { width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 10px; background: white; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: bold; }
+        
+        /* 选项卡样式 */
+        .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; gap: 8px; }
+        .tab-btn { padding: 10px 20px; border: none; background: none; font-size: 14px; font-weight: bold; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .tab-btn:hover { color: #1e40af; }
+        
+        /* 控制台样式 */
+        .control-panel { display: flex; justify-content: space-between; align-items: center; background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; font-weight: 500; cursor: pointer; background: white; transition: background 0.2s; }
+        .btn-primary { background: #2563eb; color: white; border-color: #2563eb; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-success { background: #10b981; color: white; border-color: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .status-txt { font-size: 13px; font-weight: bold; color: #2563eb; }
+        
+        /* 向导提示框 */
+        .guide-box { padding: 12px; background-color: #fff9db; border: 1px solid #ffe3e3; color: #856404; border-radius: 6px; font-size: 13px; line-height: 1.6; margin-bottom: 16px; min-h: 38px; }
+        
+        /* 演算单元格动态动效 */
+        .cell-hidden { color: transparent !important; background-color: #f8fafc; }
+        .cell-active { background-color: #fef08a !important; border: 2px solid #eab308 !important; color: #000000 !important; }
+        .row-gross { background-color: #f8fafc; }
+        .row-net { color: #dc2626; font-weight: bold; }
+        .row-receipt { color: #16a34a; font-weight: bold; }
+        .row-release { color: #4f46e5; background-color: #f8fafc; font-weight: bold; }
+        
+        /* 属性小标签 */
+        .badge { display: inline-block; padding: 2px 6px; font-size: 11px; font-weight: bold; border-radius: 4px; color: white; margin-right: 4px; }
+        .badge-a { background-color: #2563eb; }
+        .badge-b { background-color: #10b981; }
+        .badge-c { background-color: #d97706; }
+        .badge-d { background-color: #e11d48; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚙️  MRP </h1>
+    <div class="subtitle">根据您的已知条件精准编制 | 通用件跨层叠加与独立需求混合演算</div>
+
+    <div class="dashboard">
+        <div class="card">
+            <div class="card-title">📅 外部源头需求表（题目已知）</div>
+            <div style="margin-bottom: 12px;">
+                <span style="font-size: 12px; font-weight: bold; color: #475569;">① 产品 A 计划投入量（0层产品，已知源）</span>
+                <table>
+                    <tr><th>时段</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+                    <tr style="font-weight: bold; color: #2563eb;"><td>数量</td><td>20</td><td>35</td><td>0</td><td>50</td><td>0</td><td>55</td></tr>
+                </table>
+            </div>
+            <div>
+                <span style="font-size: 12px; font-weight: bold; color: #475569;">② 物料 B 的其他独立需求（本身额外市场预测）</span>
+                <table>
+                    <tr><th>时段</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+                    <tr style="font-weight: bold; color: #10b981;"><td>数量</td><td>0</td><td>0</td><td>0</td><td>10</td><td>0</td><td>20</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 核心主数据与 BOM 构成表</div>
+            <div style="margin-bottom: 10px;">
+                <span style="font-size: 12px; font-weight: bold; color: #475569;">① B、C、D 物料主信息控制表</span>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>物料代码</th>
+                            <th>现有库存</th>
+                            <th>安全库存</th>
+                            <th>提前期(LT)</th>
+                            <th>固定批量(Lot)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="badge badge-b">B</span> 物料 B</td><td>90</td><td>20</td><td>1</td><td>60</td></tr>
+                        <tr><td><span class="badge badge-c">C</span> 物料 C</td><td>40</td><td>20</td><td>1</td><td>10</td></tr>
+                        <tr><td><span class="badge badge-d">D</span> 物料 D</td><td>60</td><td>10</td><td>2</td><td>30</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="font-size: 12px; color: #475569; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <strong>② 产品产品间阶层派生公式 (BOM关系)：</strong><br>
+                • 1个 <span class="badge badge-a">A</span> 由 1个 <span class="badge badge-b">B</span> 和 1个 <span class="badge badge-c">C</span> 组成<br>
+                • 1个 <span class="badge badge-c">C</span> 由 2个 <span class="badge badge-b">B</span> 和 1个 <span class="badge badge-d">D</span> 组成<br>
+                <span style="color: #dc2626; font-weight: bold;">★ B的毛需求 = A投入×1 + C投入×2 + B自身独立需求</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button onclick="switchTab('B')" id="tab-B" class="tab-btn active">物料 B 的 MRP 计划表 (跨层通用件)</button>
+        <button onclick="switchTab('C')" id="tab-C" class="tab-btn">物料 C 的 MRP 计划表 (中间件-需优先看)</button>
+        <button onclick="switchTab('D')" id="tab-D" class="tab-btn">物料 D 的 MRP 计划表 (最底层原材料)</button>
+    </div>
+
+    <div class="control-panel">
+        <div class="btn-group">
+            <button onclick="doPrevStep()" id="btn-prev" class="btn">⬅️ 上一步 </button>
+            <button onclick="doNextStep()" id="btn-next" class="btn btn-primary">下一步  ➡️</button>
+            <button onclick="doShowAll()" class="btn btn-success">全表</button>
+        </div>
+        <div class="status-txt" id="status-step">步骤: 0 / 0</div>
+    </div>
+
+    <div id="guide-text" class="guide-box">
+        💡 教学引导：系统已载入所有例题已知条件。推荐先切换至 <b>【物料 C】</b> 计划表计算出它的投入量，再回来看 <b>【物料 B】</b> 的跨层叠加效果。点击“下一步”开始。
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th class="text-left" style="width: 240px;">计划项目 \ 计划时段</th>
+                    <th style="width: 80px; background-color: #f8fafc; color: #94a3b8;">0 (期初)</th>
+                    <th style="width: 100px;">1</th>
+                    <th style="width: 100px;">2</th>
+                    <th style="width: 100px;">3</th>
+                    <th style="width: 100px;">4</th>
+                    <th style="width: 100px;">5</th>
+                    <th style="width: 100px;">6</th>
+                </tr>
+            </thead>
+            <tbody id="mrp-grid-body">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. 完全锁定您的已知题目条件数据
+    const inputA_release = [0, 20, 35, 0, 50, 0, 55]; // A的产品投入
+    const indepDemandB   = [0, 0, 0, 0, 10, 0, 20];   // B的额外独需
+
+    let itemsConfig = {
+        C: { name: "物料 C", init: 40, safe: 20, lt: 1, lot: 10 },
+        B: { name: "物料 B", init: 90, safe: 20, lt: 1, lot: 60 },
+        D: { name: "物料 D", init: 60, safe: 10, lt: 2, lot: 30 }
+    };
+
+    let currentItem = 'B'; 
+    let globalCalcResults = {}; 
+    let currentStepIndex = 0;
+    let activeSteps = [];
+
+    // 2. 核心MRP级联解算数学引擎
+    function calculateAllMRP() {
+        // --- 第一步：计算中间件 C ---
+        // 毛需求 = A的计划投入量 * 1
+        let grossC = [...inputA_release];
+        let resC = runSingleEngine('C', grossC, itemsConfig.C);
+        globalCalcResults['C'] = resC;
+
+        // --- 第二步：计算跨层通用件 B ---
+        // 毛需求构成公式：A的投入×1 + C的投入×2 + B自身的独立需求
+        let grossB = [0, 0, 0, 0, 0, 0, 0];
+        for(let t=1; t<=6; t++) {
+            let fromA = inputA_release[t] * 1;
+            let fromC = resC.release[t] * 2;
+            let selfB = indepDemandB[t];
+            grossB[t] = fromA + fromC + selfB;
+        }
+        let resB = runSingleEngine('B', grossB, itemsConfig.B, true);
+        globalCalcResults['B'] = resB;
+
+        // --- 第三步：计算底层物料 D ---
+        // 毛需求 = C的计划投入量 * 1
+        let grossD = [...resC.release];
+        let resD = runSingleEngine('D', grossD, itemsConfig.D);
+        globalCalcResults['D'] = resD;
+
+        // 首次加载渲染
+        renderGrid();
+    }
+
+    // 3. 产生单品计算步骤与解说词的发生器
+    function runSingleEngine(key, gross, cfg, isItemB = false) {
+        let avail = [0,0,0,0,0,0,0];
+        let proj = [cfg.init,0,0,0,0,0,0];
+        let net = [0,0,0,0,0,0,0];
+        let receipt = [0,0,0,0,0,0,0];
+        let release = [0,0,0,0,0,0,0];
+
+        let steps = [];
+        let vProj = [...proj];
+        let vRelease = [0,0,0,0,0,0,0];
+
+        for(let t=1; t<=6; t++) {
+            let prevProj = vProj[t-1];
+            let gVal = gross[t];
+            let av = prevProj - gVal;
+            avail[t] = av;
+
+            let thisAvail = av;
+            let textAvail = `【时段 ${t}可用库存核算】上期预计可用库存 (${prevProj}) - 本期毛需求 (${gVal}) = <b>${av}</b>。`;
+            if(isItemB) {
+                let fromA = inputA_release[t] * 1;
+                let fromC = globalCalcResults['C'].release[t] * 2;
+                let selfB = indepDemandB[t];
+                textAvail = `【时段 ${t}毛需求拆解】通用件 B 本期毛需求由三方叠加：来自A投入(${fromA}) + 来自C投入(${fromC}) + B自身独需(${selfB}) = <b>${gVal}</b>。<br>此时可用库存 = 上期预计可用 (${prevProj}) - 叠加总需求 (${gVal}) = <b>${av}</b>。`;
+            }
+
+            steps.push({
+                ids: [`avail-${t}`, `proj-${t-1}`],
+                text: textAvail,
+                action: () => showElement(`cell-avail-${t}`, thisAvail)
+            });
+
+            if(av < cfg.safe) {
+                let nVal = cfg.safe - av;
+                net[t] = nVal;
+                let thisNet = nVal;
+                steps.push({
+                    ids: [`net-${t}`],
+                    text: `⚠️【触发净需求】时段 ${t} 可用库存 (${av}) 低于安全库存标准 (${cfg.safe})！<b>净需求 = 安全库存 - 可用库存 = ${cfg.safe} - (${av}) = ${nVal}</b>。`,
+                    action: () => showElement(`cell-net-${t}`, thisNet)
+                });
+
+                let batches = Math.ceil(nVal / cfg.lot);
+                let rc = batches * cfg.lot;
+                receipt[t] = rc;
+                let thisReceipt = rc;
+                steps.push({
+                    ids: [`receipt-${t}`],
+                    text: `📦【确定计划产出量】根据固定批量规则（Size = ${cfg.lot}），净需求 ${thisNet} 需配平。安排<b>计划产出量 = ${rc}</b>（共 ${batches} 个整批）。`,
+                    action: () => showElement(`cell-receipt-${t}`, thisReceipt)
+                });
+
+                let relT = t - cfg.lt;
+                if(relT >= 0) {
+                    vRelease[relT] += rc;
+                    release[relT] = vRelease[relT];
+                    let thisRelVal = vRelease[relT];
+                    let targetTxt = relT === 0 ? "0 (期初)" : `时段 ${relT}`;
+                    steps.push({
+                        ids: [`release-${relT}`, `receipt-${t}`],
+                        text: `⏳【提前期逆向倒排】因为提前期 (LT) = ${cfg.lt} 周，要在时段 ${t} 顺利产出 ${thisReceipt}，必须提前在<b>【${targetTxt}】安排计划投入量 = ${thisReceipt}</b>。`,
+                        action: () => showElement(`cell-release-${relT}`, thisRelVal)
+                    });
+                } else {
+                    steps.push({ ids: [], text: `❌【警告】提前期严重不足，计划倒排穿透至期初前，排程在实际生产中存在断货超期风险！`, action: ()=>{} });
+                }
+                vProj[t] = av + rc;
+            } else {
+                steps.push({
+                    ids: [`net-${t}`],
+                    text: `✅【库存充足】时段 ${t} 可用库存 (${av}) 大于或等于安全库存 (${cfg.safe})，无需触发生产，<b>净需求为 0</b>。`,
+                    action: () => showElement(`cell-net-${t}`, "-")
+                });
+                vProj[t] = av;
+            }
+
+            let thisProj = vProj[t];
+            proj[t] = thisProj;
+            steps.push({
+                ids: [`proj-${t}`],
+                text: `🏁【核算期末预计库存】时段 ${t} 最终期末预计可用库存 = 可用库存 (${av}) + 本期计划产出 (${receipt[t] || 0}) = <b>${thisProj}</b>。`,
+                action: () => showElement(`cell-proj-${t}`, thisProj)
+            });
+        }
+
+        return { gross, avail, proj, net, receipt, release, steps };
+    }
+
+    // 4. HTML 网格动态渲染核心（原生支持，杜绝点不动）
+    function renderGrid() {
+        let cfg = itemsConfig[currentItem];
+        let res = globalCalcResults[currentItem];
+        activeSteps = res.steps;
+
+        let html = `
+            <tr class="row-gross">
+                <td class="text-left font-bold">毛需求量 (Gross Req.)</td>
+                <td style="color: #94a3b8;">-</td>
+                ${[1,2,3,4,5,6].map(t => `<td class="font-bold" style="color:#0f172a;">${res.gross[t]}</td>`).join('')}
+            </tr>
+            <tr>
+                <td class="text-left font-bold">可用库存量 (Avail. Inv.)</td>
+                <td style="color: #94a3b8;">-</td>
+                ${[1,2,3,4,5,6].map(t => `<td class="cell-hidden" id="cell-avail-${t}"></td>`).join('')}
+            </tr>
+            <tr>
+                <td class="text-left font-bold">预计可用库存量 (Proj. Avail.)</td>
+                <td style="background-color: #eff6ff; font-bold; color: #2563eb;">${cfg.init}</td>
+                ${[1,2,3,4,5,6].map(t => `<td class="cell-hidden" id="cell-proj-${t}"></td>`).join('')}
+            </tr>
+            <tr class="row-net">
+                <td class="text-left font-bold">净需求量 (Net Req.)</td>
+                <td style="color: #94a3b8;">-</td>
+                ${[1,2,3,4,5,6].map(t => `<td class="cell-hidden" id="cell-net-${t}"></td>`).join('')}
+            </tr>
+            <tr class="row-receipt">
+                <td class="text-left font-bold">计划产出量 (Plnd Receipts)</td>
+                <td style="color: #94a3b8;">-</td>
+                ${[1,2,3,4,5,6].map(t => `<td class="cell-hidden" id="cell-receipt-${t}"></td>`).join('')}
+            </tr>
+            <tr class="row-release">
+                <td class="text-left font-bold" style="background-color: #f1f5f9;">计划投入量 (Plnd Releases)</td>
+                <td class="cell-hidden" id="cell-release-0"></td>
+                ${[1,2,3,4,5,6].map(t => `<td class="cell-hidden" id="cell-release-${t}"></td>`).join('')}
+            </tr>
+        `;
+
+        document.getElementById('mrp-grid-body').innerHTML = html;
+        currentStepIndex = 0;
+        document.getElementById('guide-text').innerHTML = `💡 教学向导：当前已切入到 <b>【${cfg.name}】</b> 工作表。请点击“下一步”进行格子的逐步演算。`;
+        updateButtonControls();
+    }
+
+    // 5. 交互操控指令响应
+    function switchTab(key) {
+        currentItem = key;
+        ['B','C','D'].forEach(k => {
+            let el = document.getElementById(`tab-${k}`);
+            if(k === key) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+        renderGrid();
+    }
+
+    function doNextStep() {
+        if (currentStepIndex < activeSteps.length) {
+            if(currentStepIndex > 0) setHighlight(activeSteps[currentStepIndex-1].ids, false);
+            
+            let cur = activeSteps[currentStepIndex];
+            cur.action();
+            setHighlight(cur.ids, true);
+            document.getElementById('guide-text').innerHTML = "💡 " + cur.text;
+            
+            currentStepIndex++;
+            updateButtonControls();
+        }
+    }
+
+    function doPrevStep() {
+        if (currentStepIndex > 0) {
+            setHighlight(activeSteps[currentStepIndex-1].ids, false);
+            currentStepIndex--;
+            
+            let undoTarget = activeSteps[currentStepIndex];
+            undoTarget.ids.forEach(id => {
+                let cell = document.getElementById(`cell-${id}`);
+                if(cell) {
+                    cell.innerText = "";
+                    cell.classList.add('cell-hidden');
+                }
+            });
+
+            if (currentStepIndex > 0) {
+                let prev = activeSteps[currentStepIndex-1];
+                setHighlight(prev.ids, true);
+                document.getElementById('guide-text').innerHTML = "💡 " + prev.text;
+            } else {
+                document.getElementById('guide-text').innerHTML = "💡 教学向导：已退回到初始准备状态。";
+            }
+            updateButtonControls();
+        }
+    }
+
+    function doShowAll() {
+        while(currentStepIndex < activeSteps.length) {
+            doNextStep();
+        }
+        if(activeSteps.length > 0) {
+            setHighlight(activeSteps[activeSteps.length-1].ids, false);
+        }
+    }
+
+    // 6. 工具辅助函数
+    function showElement(domId, val) {
+        let el = document.getElementById(domId);
+        if(el) {
+            el.innerText = val;
+            el.classList.remove('cell-hidden');
+        }
+    }
+
+    function setHighlight(ids, needHigh) {
+        ids.forEach(id => {
+            let el = document.getElementById(`cell-${id}`);
+            if(el) {
+                if(needHigh) el.classList.add('cell-active');
+                else el.classList.remove('cell-active');
+            }
+        });
+    }
+
+    function updateButtonControls() {
+        document.getElementById('btn-prev').disabled = (currentStepIndex === 0);
+        document.getElementById('btn-next').disabled = (currentStepIndex === activeSteps.length);
+        document.getElementById('status-step').innerText = `步骤: ${currentStepIndex} / ${activeSteps.length}`;
+    }
+
+    // 启动初始化
+    window.onload = function() {
+        calculateAllMRP();
+    };
+</script>
+
+</body>
+</html>
